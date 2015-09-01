@@ -8,11 +8,10 @@ import settings
 
 
 app = Flask(__name__, static_url_path='/static')
-app.debug = True
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    return 'It works!'
 
 @app.route('/slackapi')
 def slackRoot():
