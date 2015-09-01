@@ -2,12 +2,15 @@ from flask import Flask
 from flask import redirect
 from flask import session
 from flask import request
+import requests
 
 import SlackOAuth
 import settings
 
 
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = settings.app_secret
+app.config['SESSION_TYPE'] = 'filesystem'
 
 @app.route('/')
 def hello_world():
@@ -20,7 +23,7 @@ def slackRoot():
     oauth_error = request.args.get('error', '')
 
     if oauth_code:
-        if oauth_code == session.pop('_csrf_token', None):
+        if oauth_state == session.pop('_csrf_token', None):
             if oauth_error:
                 return 'Oops, you denied the request: <b>{}</b>'.format(oauth_error)
             else:
@@ -29,8 +32,8 @@ def slackRoot():
                     client_secret=settings.client_secret,
                     code=oauth_code
                 )
-                s = request.get(oauth_url)
-                return s.text()
+                s = requests.get(oauth_url)
+                return s.text
         else:
             return '<b>CSRF token mismatch! Sorry!</b>'
     else:
@@ -45,6 +48,4 @@ def slackOAuth():
     return redirect(auth_url)
 
 if __name__ == '__main__':
-    app.secret_key = settings.app_secret
-    app.config['SESSION_TYPE'] = 'filesystem'
     app.run()
